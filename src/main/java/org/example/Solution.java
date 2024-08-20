@@ -1,38 +1,49 @@
 package org.example;
 
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Solution {
     public int stoneGameII(int[] piles) {
-        int[][][] dp = new int[2][piles.length][piles.length];
-        return dfs(piles, 1, 0, 1, dp);
+        Map<String, Integer> memo = new HashMap<>();
+        int res = dfs(piles , 0, 1, true, memo);
+
+        return res;
     }
-    private int dfs(int[] piles, int isAlice, int i, int M, int[][][] dp){
+
+    int dfs(int[] piles, int i, int m, boolean alice, Map<String, Integer> memo) {
         if(i == piles.length) {
             return 0;
         }
-        if(dp[isAlice][i][M] != 0){
-            return dp[isAlice][i][M];
-        }
+        if(memo.containsKey(i + " " + m  + " " + (alice ? 1 : 0))) {
+            return memo.get(i + " " + m + " " + (alice ? 1 : 0));
 
-        int result = 0;
-        if(isAlice == 0){
-            result = Integer.MAX_VALUE;
         }
-
-        int sum = 0;
-        for (int j = 1; j <= 2 * M; j++) {
-            if( i + j > piles.length)
-                break;
-            sum += piles[i + j - 1];
-            if(isAlice == 1){
-                result = Math.max(result, sum +  dfs(piles, 1 - isAlice , i + j, Math.max(M, j), dp));
-            }else{
-                result = Math.min(result, dfs(piles, 1 - isAlice,i + j, Math.max(M, j), dp));
+        int res = 0;
+        if(alice) {
+            int take = 0;
+            int limit = 2 * m;
+            for(int j = i; j < i + limit; j++) {
+                if(j >= piles.length) {
+                    break;
+                }
+                take += piles[j];
+                res = Math.max(res, take + dfs(piles, j + 1, Math.max(m, j - i + 1), false, memo));
+            }
+        }else {
+            res = Integer.MAX_VALUE;
+            int limit = 2 * m;
+            for(int j = i; j < i + limit; j++) {
+                if(j >= piles.length) {
+                    break;
+                }
+                res = Math.min(res, dfs(piles, j + 1, Math.max(m, j - i + 1), true, memo));
             }
         }
-           dp[isAlice][i][M] = result;
-        return result;
+
+        memo.put(i + " " + m +  " " + (alice ? 1 : 0), res);
+        return res;
+
     }
 }
